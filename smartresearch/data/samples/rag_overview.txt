@@ -1,0 +1,88 @@
+Introduction to Retrieval-Augmented Generation (RAG)
+
+Retrieval-Augmented Generation (RAG) is a hybrid AI architecture that combines the power
+of dense vector retrieval with large language model (LLM) generation. Instead of relying
+solely on a model's parametric knowledge (i.e., information baked in during training), RAG
+systems first retrieve relevant documents or text chunks from an external knowledge base,
+then feed those chunks as context to the LLM to produce a grounded, accurate response.
+
+Why RAG Matters
+
+Traditional LLMs hallucinate — they generate plausible-sounding but factually incorrect
+information when asked about topics outside their training data or when precise factual
+recall is required. RAG addresses this by anchoring every response in real, retrieved content.
+
+Key benefits of RAG:
+- Factual grounding: answers are sourced from your own documents
+- Updatable knowledge: add new documents without retraining the model
+- Transparency: sources can be cited alongside the generated answer
+- Domain adaptability: works with any corpus — legal, medical, research, enterprise
+
+How Vector Databases Enable RAG
+
+The retrieval step in RAG relies on semantic similarity search, not keyword matching.
+Documents are split into chunks, and each chunk is converted into a dense numerical
+vector (embedding) using a language model like sentence-transformers.
+
+These vectors are stored in a vector database — in this project, we use Endee, a
+high-performance open-source vector database capable of handling up to 1 billion vectors
+on a single node.
+
+At query time:
+1. The user's question is also embedded into a vector
+2. Endee performs approximate nearest-neighbor (ANN) search to find the most similar chunks
+3. The top-K chunks are retrieved with their metadata (source, page number)
+4. The LLM (Google Gemini) uses these chunks as grounding context to generate the answer
+
+Endee Vector Database
+
+Endee supports:
+- Dense vector retrieval with cosine, dot-product, or L2 distance
+- INT8 precision for memory-efficient storage at scale
+- Payload (metadata) filtering — restrict retrieval by source, date, category
+- Hybrid search combining sparse and dense retrieval
+- REST HTTP API and official Python, Node.js, Java, and Go SDKs
+- Docker deployment for easy local and production setup
+
+Getting Started with SmartResearch
+
+SmartResearch provides a full RAG pipeline:
+1. Upload any PDF, TXT file, or web URL
+2. Documents are split into 500-token chunks with 50-token overlap
+3. Each chunk is embedded using all-MiniLM-L6-v2 (384-dimensional vectors)
+4. Embeddings and metadata are stored in Endee via the Python SDK
+5. Ask questions in natural language
+6. Endee retrieves the top-5 most relevant chunks
+7. Google Gemini generates a grounded answer with source citations
+
+Architecture Overview
+
+User Query
+    |
+    v
+Sentence-Transformers (all-MiniLM-L6-v2)    <- embed query (384-dim vector)
+    |
+    v
+Endee Vector DB  ────────────────────────── <- cosine similarity search
+    |   returns top-K chunks + metadata
+    v
+Top-K Relevant Text Chunks
+    |
+    v
+Google Gemini (gemini-1.5-flash)            <- generate grounded answer
+    |
+    v
+Final Answer + Source Attribution
+
+Evaluation Benchmarks
+
+Recent studies show RAG systems reduce hallucination rates by 40-60% compared to
+standalone LLM responses on domain-specific question answering tasks. Vector search
+latency in Endee at 1M vectors is under 5ms per query on commodity hardware.
+
+References
+
+1. Lewis et al., "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks", NeurIPS 2020
+2. Endee Documentation: https://docs.endee.io
+3. Sentence-Transformers: https://www.sbert.net
+4. Google Gemini API: https://ai.google.dev
